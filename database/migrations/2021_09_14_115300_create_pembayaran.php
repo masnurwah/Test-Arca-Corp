@@ -15,7 +15,7 @@ class CreatePembayaran extends Migration
     {
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
-            $table->integer('id_pembayaran');
+            $table->string('id_pembayaran');
             $table->double('jumlah_pembayaran');
             $table->integer('id_buruh');
             $table->integer('presentase_bonus');

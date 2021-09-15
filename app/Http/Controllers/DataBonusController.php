@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Bonus;
+use App\Buruh;
+use DB;
 
 class DataBonusController extends Controller
 {
@@ -13,7 +16,16 @@ class DataBonusController extends Controller
      */
     public function index()
     {
-        //
+        $models = DB::table('pembayaran')
+            ->selectRaw(
+                'id_pembayaran, sum(total_bonus) as total_bonus, count(id_buruh) as jumlah_buruh '
+            )
+            ->groupBy('id_pembayaran')
+            ->get();
+
+        return view('pages.data-bonus.index', [
+            'models' => $models,
+        ]);
     }
 
     /**
@@ -23,7 +35,11 @@ class DataBonusController extends Controller
      */
     public function create()
     {
-        //
+        $models_buruh = Buruh::get();
+
+        return view('pages.data-bonus.create', [
+            'models_buruh' => $models_buruh,
+        ]);
     }
 
     /**
@@ -34,7 +50,42 @@ class DataBonusController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $jumlah_pembayaran = $request->jumlah_pembayaran;
+
+        $presentase_bonus = 0;
+
+        $data_buruh = [];
+
+        foreach ($request->presentase_bonus as $key => $value) {
+            $presentase_bonus += $value;
+
+            $buruh = Buruh::where(['id' => $request->id_buruh[$key]])->first();
+
+            $data_buruh[$key]['nama_buruh'] = $buruh->name;
+            $data_buruh[$key]['total_bonus'] =
+                ($value / 100) * $jumlah_pembayaran;
+        }
+
+        if ($presentase_bonus != 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembagian bonus masih salah',
+            ]);
+        }
+
+        // return response()->json([
+        //     'success' => true,
+        //     'data' => $data_buruh,
+        // ]);
+
+        $view = view('pages.data-bonus.hasil-generate', [
+            'data_buruh' => $data_buruh,
+        ])->render();
+
+        return response()->json([
+            'success' => true,
+            'view' => $view,
+        ]);
     }
 
     /**

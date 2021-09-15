@@ -2,79 +2,125 @@
 
 @section('content')
 <div class="container">
-    <div class="row">
-        <div class="col-md-12">
-             <div class="card">
-                <div class="card-header">{{ __('Tambah User') }}</div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+
+            <div class="card">
+                <div class="card-header">Add Data Bonus</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" id="BonusForm">
                         @csrf
 
                         <div class="form-group row">
-                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Name') }}</label>
+                            <label for="JumlahPembayaran" class="col-md-4 col-form-label text-md-right">Jumlah
+                                Pembayaran (Rp)</label>
 
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
-
-                                @error('name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                                <input id="JumlahPembayaran" type="number" class="form-control" name="jumlah_pembayaran"
+                                    value="{{ old('name') }}" required>
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="email" class="col-md-4 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
-
+                        @for($i=1; $i <= 3; $i++) <div class="form-group row">
+                            <label class="col-md-4 col-form-label text-md-right">Buruh {{ $i }}</label>
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
+                                <div class="form-row">
+                                    <div class="col">
+                                        <select name="id_buruh[{{ $i }}]" class="form-control" required>
+                                            <option value="">-- Select Buruh {{ $i }} --</option>
+                                            @foreach($models_buruh as $key => $value)
+                                            <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" name="presentase_bonus[{{ $i }}]"
+                                                placeholder="Persentase" required>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
 
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="password" class="col-md-4 col-form-label text-md-right">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-right">{{ __('Confirm Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
-                        </div>
-
-                        <div class="form-group row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                            <a href="{{ route('data-user.create') }}" type="submit" class="btn btn-primary">
-                                    {{ __('Add User') }}
-                            </a>
-                            <a href="{{ route('data-user.index') }}" type="submit" class="btn btn-danger">
-                                    {{ __('Cancel') }}
-                            </a>
-                            </div>
-                        </div>
-                    </form>
                 </div>
+
+                @endfor
+
+
+                <div class="form-group row mb-0">
+                    <div class="col-md-6 offset-md-4">
+                        <button type="submit" class="btn btn-success" id="generate">Generate</button>
+                    </div>
+                </div>
+
+                </form>
+
+                <div id="BonusHasilForm"></div>
+
             </div>
         </div>
     </div>
 </div>
+</div>
+@endsection
+
+@section('js')
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#BonusForm").submit(function(e) {
+
+        e.preventDefault();
+
+        // let JumlahPembayaran = $("#JumlahPembayaran")
+        // if (JumlahPembayaran.val() == "") {
+        //     alert("Jumlah Pembayaran Required");
+        //     JumlahPembayaran.focus()
+        //     return false;
+        // }
+
+        var $form = $(this);
+
+        var serializedData = $form.serialize();
+
+
+        $.ajax({
+            url: '{{ route("data-bonus.store") }}',
+            type: "post",
+            data: serializedData,
+            success: function(response) {
+
+                if (response.success == false) {
+                    $("#BonusHasilForm").html("");
+                    alert(response.message);
+                    return false;
+                }
+
+                if (response.success == true) {
+
+                    $("#BonusHasilForm").html(response.view);
+
+                    console.log(response);
+                    // return false;
+                }
+
+                console.log(response)
+
+                // You will get response from your PHP page (what you echo or print)
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+            }
+        });
+
+        // {{ route('data-bonus.store') }}
+    })
+})
+</script>
 @endsection
