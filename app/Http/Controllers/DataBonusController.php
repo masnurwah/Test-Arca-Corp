@@ -50,6 +50,31 @@ class DataBonusController extends Controller
      */
     public function store(Request $request)
     {
+        $id_pembayaran = 'P' . rand(0, 100);
+
+        foreach ($request->pembayaran as $key => $value) {
+            DB::table('pembayaran')->insert([
+                'id_pembayaran' => $id_pembayaran,
+                'jumlah_pembayaran' => $request->jumlah_pembayaran,
+                'id_buruh' => $value['id_buruh'],
+                'presentase_bonus' => $value['presentase_bonus'],
+                'total_bonus' => $value['total_bonus'],
+            ]);
+        }
+
+        return redirect()
+            ->route('data-bonus.index')
+            ->with(['success-message' => 'Successfully save data.']);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function generate(Request $request)
+    {
         $jumlah_pembayaran = $request->jumlah_pembayaran;
 
         $presentase_bonus = 0;
@@ -61,7 +86,9 @@ class DataBonusController extends Controller
 
             $buruh = Buruh::where(['id' => $request->id_buruh[$key]])->first();
 
+            $data_buruh[$key]['id_buruh'] = $buruh->id;
             $data_buruh[$key]['nama_buruh'] = $buruh->name;
+            $data_buruh[$key]['presentase_bonus'] = $value;
             $data_buruh[$key]['total_bonus'] =
                 ($value / 100) * $jumlah_pembayaran;
         }
@@ -73,12 +100,8 @@ class DataBonusController extends Controller
             ]);
         }
 
-        // return response()->json([
-        //     'success' => true,
-        //     'data' => $data_buruh,
-        // ]);
-
         $view = view('pages.data-bonus.hasil-generate', [
+            'jumlah_pembayaran' => $jumlah_pembayaran,
             'data_buruh' => $data_buruh,
         ])->render();
 
@@ -96,7 +119,26 @@ class DataBonusController extends Controller
      */
     public function show($id)
     {
-        //
+        $models_bonus = Bonus::where(['id_pembayaran' => $id])->get();
+
+        $array = [];
+
+        foreach ($models_bonus as $key => $value) {
+
+            $array['jumlah_pembayaran'] = $value['jumlah_pembayaran'];
+            $array['id_pembayaran'] = $value['id_pembayaran'];
+
+            $data_buruh = Buruh::where(['id' => $value->id_buruh])->first();
+
+            $array['data'][$key] = $value;
+            $array['data'][$key]['data_buruh'] = $data_buruh;
+        }
+
+        // dd($array);
+
+        return view('pages.data-bonus.show', [
+            'models' => $array,
+        ]);
     }
 
     /**

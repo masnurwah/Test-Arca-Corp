@@ -32,9 +32,11 @@ Route::resource('data-buruh', 'DataBuruhController')->middleware([
     'auth',
 ]);
 
-Route::resource('data-bonus', 'DataBonusController')->middleware([
-    'auth',
-]);
+Route::resource('data-bonus', 'DataBonusController')->middleware(['auth']);
+
+Route::post('/data-bonus/generate', 'DataBonusController@generate')->name(
+    'data-bonus.generate'
+);
 
 Auth::routes();
 

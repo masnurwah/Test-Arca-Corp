@@ -10,7 +10,7 @@
                 <div class="card-header">Add Data Bonus</div>
 
                 <div class="card-body">
-                    <form method="POST" id="BonusForm">
+                    <form method="POST" id="BonusForm" action="{{ route('data-bonus.store') }}">
                         @csrf
 
                         <div class="form-group row">
@@ -54,7 +54,7 @@
 
                 <div class="form-group row mb-0">
                     <div class="col-md-6 offset-md-4">
-                        <button type="submit" class="btn btn-success" id="generate">Generate</button>
+                        <button type="submit" class="btn btn-success">Generate</button>
                     </div>
                 </div>
 
@@ -71,27 +71,20 @@
 
 @section('js')
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
 <script>
 $(document).ready(function() {
+
     $("#BonusForm").submit(function(e) {
 
         e.preventDefault();
-
-        // let JumlahPembayaran = $("#JumlahPembayaran")
-        // if (JumlahPembayaran.val() == "") {
-        //     alert("Jumlah Pembayaran Required");
-        //     JumlahPembayaran.focus()
-        //     return false;
-        // }
 
         var $form = $(this);
 
         var serializedData = $form.serialize();
 
-
         $.ajax({
-            url: '{{ route("data-bonus.store") }}',
+            url: '{{ route("data-bonus.generate") }}',
             type: "post",
             data: serializedData,
             success: function(response) {
@@ -103,23 +96,17 @@ $(document).ready(function() {
                 }
 
                 if (response.success == true) {
-
                     $("#BonusHasilForm").html(response.view);
-
-                    console.log(response);
-                    // return false;
                 }
 
                 console.log(response)
 
-                // You will get response from your PHP page (what you echo or print)
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
             }
         });
 
-        // {{ route('data-bonus.store') }}
     })
 })
 </script>
